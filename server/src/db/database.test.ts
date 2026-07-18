@@ -61,4 +61,17 @@ describe("database", () => {
       repository.createParticipant("AVERY PATEL", now.toISOString()),
     ).toThrow();
   });
+
+  it("removes a participant and cascades their activity", () => {
+    const participant = repository
+      .listParticipants()
+      .find((item) => item.name === "Maya Chen");
+
+    expect(participant).toBeDefined();
+    expect(repository.listCheckIns(participant!.id)).not.toHaveLength(0);
+    expect(repository.removeParticipant(participant!.id)).toBe(true);
+    expect(repository.findParticipant(participant!.id)).toBeUndefined();
+    expect(repository.listCheckIns(participant!.id)).toHaveLength(0);
+    expect(repository.listOutreaches(participant!.id)).toHaveLength(0);
+  });
 });

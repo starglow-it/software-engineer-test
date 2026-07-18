@@ -192,6 +192,14 @@ export class ParticipantRepository {
     return this.findParticipant(Number(result.lastInsertRowid))!;
   }
 
+  removeParticipant(id: number): boolean {
+    const result = this.database
+      .prepare("DELETE FROM participants WHERE id = ?")
+      .run(id);
+
+    return result.changes > 0;
+  }
+
   listCheckIns(participantId: number): CheckIn[] {
     const rows = this.database
       .prepare(

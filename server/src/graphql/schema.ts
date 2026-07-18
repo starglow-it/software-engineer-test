@@ -63,6 +63,7 @@ const typeDefs = /* GraphQL */ `
 
   type Mutation {
     createParticipant(name: String!): Participant!
+    removeParticipant(participantId: ID!): Participant!
 
     recordCheckIn(
       participantId: ID!
@@ -81,6 +82,10 @@ interface ParticipantArgs {
 
 interface CreateParticipantArgs {
   name: string;
+}
+
+interface RemoveParticipantArgs {
+  participantId: string;
 }
 
 interface RecordCheckInArgs {
@@ -121,6 +126,15 @@ export function createReconnectSchema(service: ParticipantService) {
         createParticipant: (_parent: unknown, args: CreateParticipantArgs) => {
           try {
             return service.createParticipant(normalizeParticipantName(args.name));
+          } catch (error) {
+            return toGraphQLError(error);
+          }
+        },
+        removeParticipant: (_parent: unknown, args: RemoveParticipantArgs) => {
+          try {
+            return service.removeParticipant(
+              parseParticipantId(args.participantId),
+            );
           } catch (error) {
             return toGraphQLError(error);
           }

@@ -96,6 +96,56 @@ describe("Reconnect GraphQL API", () => {
     );
   });
 
+  it("removes a participant and updates the dashboard summary", async () => {
+    const repository = new ParticipantRepository(database);
+    const app = createReconnectApp(
+      new ParticipantService(repository, () => currentTime),
+    );
+    const maya = repository
+      .listParticipants()
+      .find((participant) => participant.name === "Maya Chen");
+
+    expect(maya).toBeDefined();
+
+    const result = await execute(
+      app,
+      `mutation Remove($id: ID!) {
+        removeParticipant(participantId: $id) { id name }
+      }`,
+      { id: String(maya!.id) },
+    );
+
+    expect(result.errors).toBeUndefined();
+    expect(result.data).toMatchObject({
+      removeParticipant: { id: String(maya!.id), name: "Maya Chen" },
+    });
+
+    const dashboard = await execute(
+      app,
+      `query {
+        participants { id }
+        dashboardSummary { totalParticipants contactRequested }
+      }`,
+    );
+
+    expect(dashboard.data).toMatchObject({
+      participants: expect.not.arrayContaining([{ id: String(maya!.id) }]),
+      dashboardSummary: { totalParticipants: 3, contactRequested: 0 },
+    });
+  });
+
+  it("returns a useful error when removing an unknown participant", async () => {
+    const app = createReconnectApp(
+      new ParticipantService(new ParticipantRepository(database), () => currentTime),
+    );
+    const result = await execute(
+      app,
+      `mutation { removeParticipant(participantId: "999") { id } }`,
+    );
+
+    expect(result.errors?.[0]?.message).toBe("Participant 999 was not found.");
+  });
+
   it("records a request and resolves it with later outreach", async () => {
     const repository = new ParticipantRepository(database);
     const service = new ParticipantService(repository, () => currentTime);

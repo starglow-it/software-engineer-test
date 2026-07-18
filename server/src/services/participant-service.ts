@@ -128,6 +128,19 @@ export class ParticipantService {
     return this.toView(participant, now);
   }
 
+  removeParticipant(participantId: number): ParticipantView {
+    const participant = this.repository.findParticipant(participantId);
+
+    if (!participant) {
+      throw new ParticipantNotFoundError(participantId);
+    }
+
+    const participantView = this.toView(participant, this.now());
+    this.repository.removeParticipant(participantId);
+
+    return participantView;
+  }
+
   recordCheckIn(
     participantId: number,
     requestedContact: boolean,
