@@ -1,5 +1,14 @@
-import { CheckCircle2, Clock3, MessageCircle, RefreshCw, Search, ShieldCheck } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock3,
+  MessageCircle,
+  RefreshCw,
+  Search,
+  ShieldCheck,
+  UserPlus,
+} from "lucide-react";
 import { useState } from "react";
+import { AddParticipantDialog } from "@/components/add-participant-dialog";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -95,9 +104,19 @@ export default function App() {
               Review check-in activity, resolve contact requests, and keep support work moving.
             </p>
           </div>
-          <p className="text-sm text-slate-500">
-            {summary.data?.totalParticipants ?? 0} fictional participants
-          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-sm text-slate-500">
+              {summary.data?.totalParticipants ?? 0} fictional participants
+            </p>
+            <AddParticipantDialog
+              trigger={
+                <Button>
+                  <UserPlus className="size-4" aria-hidden="true" />
+                  Add participant
+                </Button>
+              }
+            />
+          </div>
         </div>
 
         <section aria-label="Follow-up summary" className="mt-7 grid gap-4 sm:grid-cols-3">

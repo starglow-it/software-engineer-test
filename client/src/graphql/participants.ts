@@ -81,6 +81,15 @@ const summaryQuery = /* GraphQL */ `
   }
 `;
 
+const createParticipantMutation = /* GraphQL */ `
+  mutation CreateParticipant($name: String!) {
+    createParticipant(name: $name) {
+      id
+      name
+    }
+  }
+`;
+
 const recordCheckInMutation = /* GraphQL */ `
   mutation RecordCheckIn(
     $participantId: ID!
@@ -165,6 +174,16 @@ export function useRecordCheckIn() {
   });
 }
 
+export function useCreateParticipant() {
+  const refreshDashboard = useRefreshDashboard();
+
+  return useMutation({
+    mutationFn: (variables: { name: string }) =>
+      graphqlClient.request(createParticipantMutation, variables),
+    onSuccess: refreshDashboard,
+  });
+}
+
 export function useLogOutreach() {
   const refreshDashboard = useRefreshDashboard();
 
@@ -174,4 +193,3 @@ export function useLogOutreach() {
     onSuccess: refreshDashboard,
   });
 }
-
