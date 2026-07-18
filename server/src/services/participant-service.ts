@@ -23,6 +23,13 @@ export class ParticipantNotFoundError extends Error {
   }
 }
 
+export class ParticipantAlreadyExistsError extends Error {
+  constructor(name: string) {
+    super(`A participant named ${name} already exists.`);
+    this.name = "ParticipantAlreadyExistsError";
+  }
+}
+
 export interface ParticipantView extends Participant {
   latestCheckIn: CheckIn | null;
   latestOutreach: Outreach | null;
@@ -110,6 +117,17 @@ export class ParticipantService {
     );
   }
 
+  createParticipant(name: string): ParticipantView {
+    if (this.repository.findParticipantByName(name)) {
+      throw new ParticipantAlreadyExistsError(name);
+    }
+
+    const now = this.now();
+    const participant = this.repository.createParticipant(name, now.toISOString());
+
+    return this.toView(participant, now);
+  }
+
   recordCheckIn(
     participantId: number,
     requestedContact: boolean,
@@ -139,4 +157,3 @@ export class ParticipantService {
     }
   }
 }
-

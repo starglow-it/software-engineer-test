@@ -33,3 +33,18 @@ export function normalizeNote(value: string | null | undefined): string | null {
   return note.length === 0 ? null : note;
 }
 
+export function normalizeParticipantName(value: string): string {
+  const name = value.trim().replace(/\s+/g, " ");
+
+  if (name.length === 0) {
+    throw new InputValidationError("Participant name is required.");
+  }
+
+  if (name.length > 80) {
+    throw new InputValidationError(
+      "Participant name must be 80 characters or fewer.",
+    );
+  }
+
+  return name;
+}

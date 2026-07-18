@@ -37,6 +37,9 @@ const schema = `
     created_at TEXT NOT NULL
   );
 
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_participants_unique_name
+    ON participants(name COLLATE NOCASE);
+
   CREATE TABLE IF NOT EXISTS check_ins (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     participant_id INTEGER NOT NULL,
@@ -166,6 +169,27 @@ export class ParticipantRepository {
          WHERE id = ?`,
       )
       .get(id) as Participant | undefined;
+  }
+
+  findParticipantByName(name: string): Participant | undefined {
+    return this.database
+      .prepare(
+        `SELECT id, name, created_at AS createdAt
+         FROM participants
+         WHERE name = ? COLLATE NOCASE`,
+      )
+      .get(name) as Participant | undefined;
+  }
+
+  createParticipant(name: string, createdAt: string): Participant {
+    const result = this.database
+      .prepare(
+        `INSERT INTO participants (name, created_at)
+         VALUES (?, ?)`,
+      )
+      .run(name, createdAt);
+
+    return this.findParticipant(Number(result.lastInsertRowid))!;
   }
 
   listCheckIns(participantId: number): CheckIn[] {

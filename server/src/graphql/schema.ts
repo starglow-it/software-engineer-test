@@ -1,12 +1,14 @@
 import { GraphQLError } from "graphql";
 import { createSchema } from "graphql-yoga";
 import {
+  ParticipantAlreadyExistsError,
   ParticipantNotFoundError,
   type ParticipantService,
 } from "../services/participant-service.js";
 import {
   InputValidationError,
   normalizeNote,
+  normalizeParticipantName,
   parseParticipantId,
 } from "../validation/input.js";
 import type { FollowUpStatus } from "../services/follow-up.js";
@@ -60,6 +62,8 @@ const typeDefs = /* GraphQL */ `
   }
 
   type Mutation {
+    createParticipant(name: String!): Participant!
+
     recordCheckIn(
       participantId: ID!
       requestedContact: Boolean!
@@ -73,6 +77,10 @@ const typeDefs = /* GraphQL */ `
 interface ParticipantArgs {
   status?: FollowUpStatus | null;
   search?: string | null;
+}
+
+interface CreateParticipantArgs {
+  name: string;
 }
 
 interface RecordCheckInArgs {
@@ -89,6 +97,7 @@ interface LogOutreachArgs {
 function toGraphQLError(error: unknown): never {
   if (
     error instanceof InputValidationError ||
+    error instanceof ParticipantAlreadyExistsError ||
     error instanceof ParticipantNotFoundError
   ) {
     throw new GraphQLError(error.message, {
@@ -109,6 +118,13 @@ export function createReconnectSchema(service: ParticipantService) {
         dashboardSummary: () => service.dashboardSummary(),
       },
       Mutation: {
+        createParticipant: (_parent: unknown, args: CreateParticipantArgs) => {
+          try {
+            return service.createParticipant(normalizeParticipantName(args.name));
+          } catch (error) {
+            return toGraphQLError(error);
+          }
+        },
         recordCheckIn: (_parent: unknown, args: RecordCheckInArgs) => {
           try {
             return service.recordCheckIn(
@@ -134,4 +150,3 @@ export function createReconnectSchema(service: ParticipantService) {
     },
   });
 }
-

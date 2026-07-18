@@ -48,5 +48,17 @@ describe("database", () => {
     expect(repository.listCheckIns(participant!.id)[0]?.id).toBe(checkIn.id);
     expect(repository.listOutreaches(participant!.id)[0]?.id).toBe(outreach.id);
   });
-});
 
+  it("creates participants and enforces case-insensitive name uniqueness", () => {
+    const participant = repository.createParticipant(
+      "Avery Patel",
+      now.toISOString(),
+    );
+
+    expect(repository.findParticipant(participant.id)).toEqual(participant);
+    expect(repository.findParticipantByName("avery patel")).toEqual(participant);
+    expect(() =>
+      repository.createParticipant("AVERY PATEL", now.toISOString()),
+    ).toThrow();
+  });
+});

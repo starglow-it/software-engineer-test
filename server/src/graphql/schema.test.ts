@@ -34,6 +34,68 @@ afterEach(() => {
 });
 
 describe("Reconnect GraphQL API", () => {
+  it("creates a participant with normalized input and refresh-ready data", async () => {
+    const app = createReconnectApp(
+      new ParticipantService(new ParticipantRepository(database), () => currentTime),
+    );
+    const result = await execute(
+      app,
+      `mutation Create($name: String!) {
+        createParticipant(name: $name) {
+          id
+          name
+          followUp { status }
+        }
+      }`,
+      { name: "  Avery   Patel  " },
+    );
+
+    expect(result.errors).toBeUndefined();
+    expect(result.data).toMatchObject({
+      createParticipant: {
+        name: "Avery Patel",
+        followUp: { status: "CHECK_IN_OVERDUE" },
+      },
+    });
+
+    const summary = await execute(
+      app,
+      `query { dashboardSummary { totalParticipants checkInOverdue } }`,
+    );
+
+    expect(summary.data).toMatchObject({
+      dashboardSummary: { totalParticipants: 5, checkInOverdue: 2 },
+    });
+  });
+
+  it("rejects empty and duplicate participant names", async () => {
+    const app = createReconnectApp(
+      new ParticipantService(new ParticipantRepository(database), () => currentTime),
+    );
+
+    const emptyResult = await execute(
+      app,
+      `mutation Create($name: String!) {
+        createParticipant(name: $name) { id }
+      }`,
+      { name: "   " },
+    );
+    const duplicateResult = await execute(
+      app,
+      `mutation Create($name: String!) {
+        createParticipant(name: $name) { id }
+      }`,
+      { name: "maya chen" },
+    );
+
+    expect(emptyResult.errors?.[0]?.message).toBe(
+      "Participant name is required.",
+    );
+    expect(duplicateResult.errors?.[0]?.message).toBe(
+      "A participant named maya chen already exists.",
+    );
+  });
+
   it("records a request and resolves it with later outreach", async () => {
     const repository = new ParticipantRepository(database);
     const service = new ParticipantService(repository, () => currentTime);
@@ -104,4 +166,3 @@ describe("Reconnect GraphQL API", () => {
     expect(result.errors?.[0]?.message).toBe("Participant 999 was not found.");
   });
 });
-
