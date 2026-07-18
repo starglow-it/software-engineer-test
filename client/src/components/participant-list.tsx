@@ -17,14 +17,14 @@ import { formatDateTime, initials } from "@/lib/format";
 
 function ParticipantActions({ participant }: { participant: Participant }) {
   return (
-    <div className="flex flex-wrap gap-2 md:justify-end">
+    <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap lg:justify-end">
       <ParticipantActionDialog
         participant={participant}
         action="check-in"
         trigger={
           <Button variant="outline" size="sm">
             <MessageSquarePlus className="size-4" aria-hidden="true" />
-            Check-in
+            <span className="lg:sr-only xl:not-sr-only">Check-in</span>
           </Button>
         }
       />
@@ -34,7 +34,7 @@ function ParticipantActions({ participant }: { participant: Participant }) {
         trigger={
           <Button size="sm">
             <PhoneCall className="size-4" aria-hidden="true" />
-            Outreach
+            <span className="lg:sr-only xl:not-sr-only">Outreach</span>
           </Button>
         }
       />
@@ -44,10 +44,11 @@ function ParticipantActions({ participant }: { participant: Participant }) {
           <Button
             variant="ghost"
             size="sm"
-            className="text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+            className="text-rose-700 hover:bg-rose-50 hover:text-rose-800 lg:size-9 lg:p-0"
+            title={`Remove ${participant.name}`}
           >
             <Trash2 className="size-4" aria-hidden="true" />
-            Remove
+            <span className="lg:sr-only">Remove</span>
           </Button>
         }
       />
@@ -66,10 +67,10 @@ function DateDetail({
 }) {
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500 md:hidden">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500 lg:hidden">
         {label}
       </p>
-      <p className="mt-1 text-sm font-medium text-slate-800 md:mt-0">
+      <p className="mt-1 text-sm font-medium text-slate-800 lg:mt-0">
         {formatDateTime(value)}
       </p>
       {note && <p className="mt-1 line-clamp-1 text-xs text-slate-500">{note}</p>}
@@ -96,15 +97,15 @@ export function ParticipantList({ participants }: { participants: Participant[] 
 
   return (
     <>
-      <Card className="hidden overflow-hidden md:block">
-        <Table>
+      <Card className="hidden overflow-hidden lg:block">
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow className="hover:bg-white">
-              <TableHead className="w-[18%]">Participant</TableHead>
-              <TableHead className="w-[17%]">Latest check-in</TableHead>
-              <TableHead className="w-[17%]">Latest outreach</TableHead>
-              <TableHead className="w-[28%]">Follow-up status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="w-[17%]">Participant</TableHead>
+              <TableHead className="w-[16%]">Latest check-in</TableHead>
+              <TableHead className="w-[16%]">Latest outreach</TableHead>
+              <TableHead className="w-[26%]">Follow-up status</TableHead>
+              <TableHead className="w-[25%] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -138,7 +139,7 @@ export function ParticipantList({ participants }: { participants: Participant[] 
                     {participant.followUp.reason}
                   </p>
                 </TableCell>
-                <TableCell>
+                <TableCell className="align-middle">
                   <ParticipantActions participant={participant} />
                 </TableCell>
               </TableRow>
@@ -147,7 +148,7 @@ export function ParticipantList({ participants }: { participants: Participant[] 
         </Table>
       </Card>
 
-      <div className="space-y-3 md:hidden">
+      <div className="space-y-3 lg:hidden">
         {participants.map((participant) => (
           <Card key={participant.id}>
             <CardContent className="space-y-5 p-5">
