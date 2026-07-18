@@ -1,5 +1,6 @@
-import { MessageSquarePlus, PhoneCall, Users } from "lucide-react";
+import { MessageSquarePlus, PhoneCall, Trash2, Users } from "lucide-react";
 import { ParticipantActionDialog } from "@/components/participant-action-dialog";
+import { RemoveParticipantDialog } from "@/components/remove-participant-dialog";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,6 +35,19 @@ function ParticipantActions({ participant }: { participant: Participant }) {
           <Button size="sm">
             <PhoneCall className="size-4" aria-hidden="true" />
             Outreach
+          </Button>
+        }
+      />
+      <RemoveParticipantDialog
+        participant={participant}
+        trigger={
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+          >
+            <Trash2 className="size-4" aria-hidden="true" />
+            Remove
           </Button>
         }
       />
@@ -175,4 +189,3 @@ export function ParticipantList({ participants }: { participants: Participant[] 
     </>
   );
 }
-

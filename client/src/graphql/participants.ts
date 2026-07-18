@@ -90,6 +90,15 @@ const createParticipantMutation = /* GraphQL */ `
   }
 `;
 
+const removeParticipantMutation = /* GraphQL */ `
+  mutation RemoveParticipant($participantId: ID!) {
+    removeParticipant(participantId: $participantId) {
+      id
+      name
+    }
+  }
+`;
+
 const recordCheckInMutation = /* GraphQL */ `
   mutation RecordCheckIn(
     $participantId: ID!
@@ -180,6 +189,16 @@ export function useCreateParticipant() {
   return useMutation({
     mutationFn: (variables: { name: string }) =>
       graphqlClient.request(createParticipantMutation, variables),
+    onSuccess: refreshDashboard,
+  });
+}
+
+export function useRemoveParticipant() {
+  const refreshDashboard = useRefreshDashboard();
+
+  return useMutation({
+    mutationFn: (variables: { participantId: string }) =>
+      graphqlClient.request(removeParticipantMutation, variables),
     onSuccess: refreshDashboard,
   });
 }
