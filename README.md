@@ -11,6 +11,8 @@ I chose this idea because a missed support request is a small but meaningful wor
 - Prioritized follow-up queue with plain-language status reasons
 - Summary counts for requested contact, overdue check-ins, and current participants
 - Name search and server-side status filtering
+- Participant creation with normalized, case-insensitive duplicate validation
+- Confirmed participant removal with cascading activity cleanup
 - Check-in form with an explicit contact-request option
 - Outreach form that resolves earlier requests only when the outreach is later
 - SQLite persistence across page reloads and server restarts
@@ -72,11 +74,18 @@ The calculation receives the current time as a dependency instead of reading the
 
 Reconnect uses three SQLite tables:
 
-- `participants` stores the fictional participant identity.
+- `participants` stores the fictional participant identity and enforces unique
+  names without case sensitivity.
 - `check_ins` stores contact preferences, an optional note, and a UTC timestamp.
 - `outreaches` stores completed contact attempts, an optional note, and a UTC timestamp.
 
 Tables and indexes are created at startup. Four fictional participants are seeded only when the database is empty, with examples covering every follow-up state. Generated database and WAL files are ignored by Git.
+
+New participants are persisted immediately and begin in the **check-in overdue**
+state because they have no check-in history. Removing a participant also removes
+their check-ins and outreach through SQLite foreign-key cascades. Successful
+mutations invalidate the participant and summary queries so the dashboard updates
+without a page reload.
 
 ## Run locally
 
@@ -122,6 +131,8 @@ The test suite focuses on the highest-risk behavior:
 - Exactly 72 hours is overdue; just under 72 hours is current.
 - A later non-requesting check-in cannot erase a request.
 - Seed data is idempotent and repository writes are durable.
+- Participant names are normalized and empty or case-insensitive duplicates are rejected.
+- Removing a participant cascades their check-ins and outreach records.
 - A GraphQL integration test exercises request creation and later resolution.
 - Client formatting fallbacks remain clear.
 
@@ -143,11 +154,13 @@ npm run build
 - Only outreach strictly after a request resolves it.
 - A request remains open until resolved, even if a later check-in does not request contact.
 - The demo represents one coordinator and intentionally omits authentication.
+- Participant names are required, limited to 80 characters, and unique regardless of case.
+- Participant removal is permanent and deletes related activity.
 - SQLite is appropriate for the requested local, durable demonstration.
 
 ## Scope and tradeoffs
 
-The implementation is intentionally narrow so the core workflow is complete and explainable. I did not add authentication, multiple organizations, notification delivery, real-time subscriptions, clinical scoring, or deployment infrastructure. Styling uses a small set of local shadcn/ui-style components rather than a large custom design system.
+The implementation is intentionally narrow so the core workflow is complete and explainable. I did not add authentication, multiple organizations, notification delivery, real-time subscriptions, clinical scoring, or deployment infrastructure. Participant removal uses a confirmation step but not a recoverable archive. Styling uses a small set of local shadcn/ui-style components rather than a large custom design system.
 
 The API calculates summary counts and filtered participant views on demand. This keeps the logic straightforward for a four-person demonstration; a larger dataset would need batched event queries, pagination, and database-level aggregation.
 
@@ -167,4 +180,3 @@ I would prioritize:
 ## Privacy and safety
 
 This repository contains no real personal or health information. A production version would require a formal security and privacy review, strict authorization, retention controls, audit logging, encryption, and careful operational policies. This demonstration does not claim HIPAA compliance and does not provide medical guidance.
-
